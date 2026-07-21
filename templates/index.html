@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>December 1967 Comics</title>
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --panel: #fff;
+    --ink: #1c1c1c;
+    --accent: #b22222;
+    --muted: #666;
+    --border: #d8d3c4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 16px 24px;
+    border-bottom: 4px solid #000;
+  }
+  header h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.5px; }
+  header p { margin: 4px 0 0; font-size: 0.9rem; opacity: 0.9; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 24px;
+    padding: 24px;
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  aside {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px;
+    height: fit-content;
+  }
+  aside h2 { margin: 0 0 8px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+  .pub-list { list-style: none; padding: 0; margin: 0; }
+  .pub-list li {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-bottom: 1px dotted var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .pub-list li:hover { background: #f0ece0; }
+  .pub-list li.active { background: var(--accent); color: #fff; }
+  .pub-list li .count { color: var(--muted); font-size: 0.85rem; }
+  .pub-list li.active .count { color: #fff; }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card img {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    background: #eee;
+    border: 1px solid var(--border);
+  }
+  .card .no-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background: repeating-linear-gradient(45deg, #eee, #eee 10px, #ddd 10px, #ddd 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .card h3 { margin: 8px 0 2px; font-size: 1rem; }
+  .card .issue { color: var(--muted); font-size: 0.85rem; }
+  .card .pub { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .empty {
+    padding: 32px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px dashed var(--border);
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>December 1967 Comics</h1>
+  <p>Cover-dated December 1967 &mdash; searchable archive</p>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>Publishers</h2>
+    <ul class="pub-list" id="pub-list">
+      <li class="active" data-pub="">All <span class="count" id="total-count">0</span></li>
+    </ul>
+  </aside>
+
+  <main>
+    <div class="search-bar">
+      <input id="search" type="search" placeholder="Search by title, character, writer, artist..." />
+    </div>
+    <div id="results" class="grid"></div>
+    <div id="empty" class="empty" style="display:none">No comics yet. Data will appear as it's added to the database.</div>
+  </main>
+</div>
+
+<script>
+  let currentPublisher = "";
+  let currentQuery = "";
+
+  async function loadPublishers() {
+    const r = await fetch("/api/publishers");
+    const data = await r.json();
+    const list = document.getElementById("pub-list");
+    list.querySelectorAll("li:not([data-pub=''])").forEach(el => el.remove());
+    let total = 0;
+    for (const p of data) {
+      total += p.count;
+      const li = document.createElement("li");
+      li.dataset.pub = p.publisher;
+      li.innerHTML = `${p.publisher} <span class="count">${p.count}</span>`;
+      li.onclick = () => selectPublisher(p.publisher, li);
+      list.appendChild(li);
+    }
+    document.getElementById("total-count").textContent = total;
+  }
+
+  function selectPublisher(pub, el) {
+    currentPublisher = pub;
+    document.querySelectorAll(".pub-list li").forEach(li => li.classList.remove("active"));
+    el.classList.add("active");
+    loadComics();
+  }
+
+  document.querySelector(".pub-list li[data-pub='']").onclick = function() {
+    selectPublisher("", this);
+  };
+
+  async function loadComics() {
+    const params = new URLSearchParams();
+    if (currentPublisher) params.set("publisher", currentPublisher);
+    if (currentQuery) params.set("q", currentQuery);
+    const r = await fetch("/api/comics?" + params.toString());
+    const data = await r.json();
+    const grid = document.getElementById("results");
+    const empty = document.getElementById("empty");
+    grid.innerHTML = "";
+    if (data.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    for (const c of data) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const cover = c.cover_image
+        ? `<img src="/covers/${c.cover_image}" alt="${c.title} cover" />`
+        : `<div class="no-cover">no cover</div>`;
+      card.innerHTML = `
+        ${cover}
+        <div class="pub">${c.publisher}</div>
+        <h3>${c.title}</h3>
+        <div class="issue">${c.issue_number ? "#" + c.issue_number : ""} &middot; ${c.cover_date || ""}</div>
+      `;
+      grid.appendChild(card);
+    }
+  }
+
+  document.getElementById("search").addEventListener("input", (e) => {
+    currentQuery = e.target.value.trim();
+    loadComics();
+  });
+
+  loadPublishers();
+  loadComics();
+</script>
+</body>
+</html>
