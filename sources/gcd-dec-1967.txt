@@ -98,3 +98,58 @@ USDC	previewOur Army at War (1952 series) #187	December 1967	1967-10-03
 USPennsylvania Fish Commission	previewPennsylvania Angler (1931 series) #v36#12	December 1967	1967
 USArchie	previewPep (1960 series) #212	December 1967	—
 USKing Features	previewThe Phantom (1966 series) #28	December 1967	1967-12-04
+USPlayboy	previewPlayboy (1953 series) #v14#12	December 1967	—
+USHarvey	previewPlayful Little Audrey (1957 series) #73	December 1967	1967-09-15
+USKing Features	previewPopeye (1966 series) #92	December 1967	1967-12-04
+USMarvel	previewThe Rawhide Kid (1960 series) #61	December 1967	1967-08-31
+USHarvey	previewRichie Rich (1960 series) #64	December 1967	1967-09-15
+USHarvey	previewRichie Rich Dollars and Cents (1963 series) #21	December 1967	1967-09-15
+USHarvey	previewRichie Rich Dollars and Cents (1963 series) #21 [Canadian]	December 1967	1967
+USCharlton	previewRomantic Story (1954 series) #91	December 1967	—
+USHarvey	previewSad Sack and the Sarge (1957 series) #65	December 1967	1967-09-15
+USHarvey	previewSad Sack Comics (1949 series) #196	December 1967	1967-09-15
+USDC	previewSecret Hearts (1949 series) #124	December 1967	1967-10-05
+USMarvel	previewSgt. Fury (1963 series) #49	December 1967	1967-10-03
+USPrize	previewSick (1960 series) #v8#1 (57)	December 1967	1967-10-02
+USWestern	previewSpace Family Robinson Lost in Space (1966 series) #25	December 1967	1967-10-19
+USHarvey	previewSpooky (1955 series) #101	December 1967	1967-09-15
+USDC	previewStar Spangled War Stories (1952 series) #136	December 1967-January 1968	1967-10-17
+USMarvel	previewStare (1951 series) #78	December 1967	—
+USDC	previewStrange Adventures (1950 series) #207	December 1967	1967-10-31
+USMarvel	previewStrange Tales (1951 series) #163	December 1967	1967-08-31
+USDC	previewSugar & Spike (1956 series) #74	December 1967-January 1968	1967-10-17
+USDC	previewSuperboy (1949 series) #143	December 1967	1967-10-05
+USDC	previewSuperman (1939 series) #202	December 1967-January 1968	1967-10-17
+USDC	previewSuperman's Pal, Jimmy Olsen (1954 series) #107	December 1967	1967-10-10
+USCharlton	previewSweethearts (1954 series) #96	December 1967	—
+USDC	previewSwing with Scooter (1966 series) #10	December 1967-January 1968	1967-10-24
+USTower	previewT.H.U.N.D.E.R. Agents (1965 series) #17	December 1967	—
+USMarvel	previewTales of Suspense (1959 series) #96	December 1967	1967-08-31
+USDC	previewTales of the Unexpected (1956 series) #104	December 1967-January 1968	1967-10-10
+USMarvel	previewTales to Astonish (1959 series) #98	December 1967	1967-09-07
+USDell	previewThirteen (1962 series) #25	December 1967	—
+USMarvel	previewThor (1966 series) #147	December 1967	1967-10-03
+USWestern	previewThe Three Stooges (1962 series) #37	December 1967	1967-09-14
+USCharlton	previewTime for Love (1967 series) #2	December 1967	—
+USCharlton	previewTimmy the Timid Ghost (1967 series) #2	December 1967	—
+USTower	previewTippy Teen (1965 series) #17	December 1967	—
+USTower	previewTippy's Friends Go-Go and Animal (1966 series) #7	December 1967	—
+USWestern	previewTop Cat (1962 series) #21	December 1967	—
+USWestern	previewTop Comics Walt Disney Super Goof (1967 series) #2	1967	—
+USGeorge A. Pflaum	previewTreasure Chest of Fun and Fact (1946 series) #v23#8 [434]	December 14, 1967	1967-12-07
+USGeorge A. Pflaum	previewTreasure Chest of Fun and Fact (1946 series) #v23#9 [435]	December 28, 1967	1967-12-21
+USWestern	previewWalt Disney Chip 'n' Dale (1967 series) #1	December 1967	—
+USWestern	previewWalt Disney Presents Zorro (1966 series) #8	December 1967	—
+USWestern	previewWalt Disney Scamp (1967 series) #1	December 1967	1967-09
+USWestern	previewWalt Disney Super Goof (1965 series) #9	December 1967	1967-09-14
+USWestern	previewWalt Disney Uncle Scrooge (1963 series) #72	December 1967	1967-10-12
+USWestern	previewWalt Disney's Comics and Stories (1962 series) #v28#3 (327)	December 1967	1967-10-26
+USCharlton	previewWar and Attack (1966 series) #63	December 1967	—
+USHarvey	previewWendy Witch World (1961 series) #22	December 1967	1967-09-15
+USHarvey	previewWendy Witch World (1961 series) #22 [Canadian]	December 1967	1967
+USHarvey	previewWendy, the Good Little Witch (1960 series) #45	December 1967	1967-09-15
+USCharlton	previewWorld of Wheels (1967 series) #18	December 1967	—
+USDC	previewWorld's Finest Comics (1941 series) #172	December 1967	1967-10-26
+USCharlton	previewWyatt Earp, Frontier Marshal (1956 series) #72	December 1967	—
+USMarvel	previewThe X-Men (1963 series) #39	December 1967	1967-10-10
+USDC	previewYoung Romance (1963 series) #151	December 1967-January 1968	1967-10-10
