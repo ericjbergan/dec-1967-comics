@@ -100,7 +100,27 @@
     justify-content: center;
     color: var(--muted);
     font-size: 0.85rem;
+    text-align: center;
+    padding: 0 10px;
+    cursor: pointer;
   }
+  .card .no-cover:hover { background: repeating-linear-gradient(45deg, #e4e4e4, #e4e4e4 10px, #d0d0d0 10px, #d0d0d0 20px); }
+  .cover-wrap { position: relative; }
+  .cover-wrap .replace {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cover-wrap:hover .replace { opacity: 1; }
+  .file-input { display: none; }
   .card h3 { margin: 8px 0 2px; font-size: 1rem; }
   .card .issue { color: var(--muted); font-size: 0.85rem; }
   .card .pub { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -227,11 +247,15 @@
       const card = document.createElement("div");
       card.className = "card" + (c.owned ? " owned" : "");
       card.dataset.id = c.id;
-      const cover = c.cover_image
-        ? `<img src="/covers/${c.cover_image}" alt="${c.title} cover" />`
-        : `<div class="no-cover">no cover</div>`;
+      const coverHtml = c.cover_image
+        ? `<div class="cover-wrap">
+             <img src="/covers/${c.cover_image}?v=${Date.now()}" alt="${c.title} cover" />
+             <span class="replace">replace</span>
+           </div>`
+        : `<div class="no-cover">click to add cover</div>`;
       card.innerHTML = `
-        ${cover}
+        ${coverHtml}
+        <input type="file" class="file-input" accept="image/*" />
         <div class="pub">${c.publisher}</div>
         <h3>${c.title}</h3>
         <div class="issue">${c.issue_number ? "#" + c.issue_number : ""} &middot; ${c.cover_date || ""}</div>
@@ -240,7 +264,22 @@
           <span>${c.owned ? "In collection" : "Mark as owned"}</span>
         </label>
       `;
-      const cb = card.querySelector('input[type=checkbox]');
+      const fileInput = card.querySelector('.file-input');
+      const coverTrigger = card.querySelector('.no-cover, .cover-wrap');
+      coverTrigger.addEventListener('click', (e) => {
+        // Only intercept clicks on the placeholder or the "replace" badge
+        if (e.target.classList.contains('replace') || e.target.classList.contains('no-cover')) {
+          fileInput.click();
+        }
+      });
+      fileInput.addEventListener('change', async () => {
+        if (!fileInput.files[0]) return;
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        const resp = await fetch(`/api/comics/${c.id}/cover`, {method: 'POST', body: fd});
+        if (resp.ok) loadComics();
+      });
+      const cb = card.querySelector('.own-row input[type=checkbox]');
       cb.addEventListener('change', async () => {
         const resp = await fetch(`/api/comics/${c.id}/owned`, {
           method: "POST",

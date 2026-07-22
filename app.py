@@ -183,6 +183,54 @@ def delete_comic(comic_id):
     return jsonify({"ok": True})
 
 
+ALLOWED_COVER_EXTS = {"jpg", "jpeg", "png", "gif", "webp"}
+
+
+@app.route("/api/comics/<int:comic_id>/cover", methods=["POST"])
+def upload_cover(comic_id):
+    if "file" not in request.files:
+        abort(400, "no file")
+    f = request.files["file"]
+    if not f.filename:
+        abort(400, "empty filename")
+    ext = f.filename.rsplit(".", 1)[-1].lower()
+    if ext not in ALLOWED_COVER_EXTS:
+        abort(400, f"unsupported extension .{ext}")
+
+    with get_db() as conn:
+        exists = conn.execute("SELECT 1 FROM comics WHERE id = ?", (comic_id,)).fetchone()
+        if not exists:
+            abort(404)
+
+        os.makedirs(COVERS_DIR, exist_ok=True)
+        # Remove any prior file for this id (in case ext changed)
+        for old_ext in ALLOWED_COVER_EXTS:
+            old = os.path.join(COVERS_DIR, f"{comic_id}.{old_ext}")
+            if os.path.exists(old):
+                os.remove(old)
+
+        filename = f"{comic_id}.{ext}"
+        f.save(os.path.join(COVERS_DIR, filename))
+        conn.execute("UPDATE comics SET cover_image = ? WHERE id = ?",
+                     (filename, comic_id))
+    return jsonify({"id": comic_id, "cover_image": filename})
+
+
+@app.route("/api/comics/<int:comic_id>/cover", methods=["DELETE"])
+def delete_cover(comic_id):
+    with get_db() as conn:
+        row = conn.execute("SELECT cover_image FROM comics WHERE id = ?",
+                           (comic_id,)).fetchone()
+        if not row:
+            abort(404)
+        if row["cover_image"]:
+            path = os.path.join(COVERS_DIR, row["cover_image"])
+            if os.path.exists(path):
+                os.remove(path)
+        conn.execute("UPDATE comics SET cover_image = NULL WHERE id = ?", (comic_id,))
+    return jsonify({"id": comic_id, "cover_image": None})
+
+
 @app.route("/covers/<path:filename>")
 def cover(filename):
     return send_from_directory(COVERS_DIR, filename)
