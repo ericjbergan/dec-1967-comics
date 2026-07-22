@@ -1,6 +1,5 @@
 USDC	previewAction Comics (1938 series) #357	December 1967	1967-10-31
 USDC	previewAdventure Comics (1938 series) #363	December 1967	1967-10-31
-USDC	previewThe Adventures of Bob Hope (1950 series) #108	December 1967-January 1968	1967-10-03
 USArchie	previewThe Adventures of Little Archie (1961 series) #46	—	1967-12-01
 USWestern	previewThe Aliens (1967 series) #1	[December 1967]	1967-09
 USMarvel	previewThe Amazing Spider-Man (1963 series) #55	December 1967	1967-09-07
