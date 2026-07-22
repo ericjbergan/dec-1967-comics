@@ -1,5 +1,8 @@
+Dell	preview1000 Jokes (1939 series) #124	December 1967-February 1968	—
+USDC	preview80 Page Giant Magazine (1964 series) #G-42	December 1967-January 1968	1967-10-17
 USDC	previewAction Comics (1938 series) #357	December 1967	1967-10-31
 USDC	previewAdventure Comics (1938 series) #363	December 1967	1967-10-31
+USDC	previewThe Adventures of Bob Hope (1950 series) #108	December 1967-January 1968	1967-10-03
 USArchie	previewThe Adventures of Little Archie (1961 series) #46	—	1967-12-01
 USWestern	previewThe Aliens (1967 series) #1	[December 1967]	1967-09
 USMarvel	previewThe Amazing Spider-Man (1963 series) #55	December 1967	1967-09-07
@@ -11,15 +14,18 @@ USArchie	previewArchie's Joke Book Magazine (1953 series) #119	December 1967	196
 USArchie	previewArchie's Madhouse (1959 series) #58	December 1967	—
 USArchie	previewArchie's Pals 'n' Gals (1952 series) #43	December 1967	—
 USPrize	previewArmy Fun (1952 series) #v9#1	December 1967	—
+USDC	previewThe Atom (1962 series) #34	December 1967-January 1968	1967-10-03
 USMarvel	previewThe Avengers (1963 series) #47	December 1967	1967-10-10
 USHarvey	previewBaby Huey, the Baby Giant (1956 series) #79	December 1967	1967-09-15
 USDC	previewBatman (1940 series) #197	December 1967	1967-10-19
 USKing Features	previewBeetle Bailey (1966 series) #65	December 1967	1967-12-04
 USArchie	previewBetty and Me (1965 series) #11	December 1967	—
 USCharlton	previewBilly the Kid (1957 series) #64	December 1967	—
+USDC	previewBlackhawk (1957 series) #238	December 1967-January 1968	1967-10-12
 USKing Features	previewBlondie (1966 series) #175	December 1967	1967-12-04
 USCharlton	previewBlue Beetle (1967 series) #4	December 1967	—
 USWestern	previewBoris Karloff Tales of Mystery (1963 series) #20	December 1967	1967-09-07
+USDC	previewThe Brave and the Bold (1955 series) #75	December 1967-January 1968	1967-10-24
 USPrize	previewBroadway Laughs (1950 series) #v9#3	December 1967	—
 USWestern	previewBugs Bunny Winter Fun (1967 series) #1	December 1967	—
 USMarvel	previewCampus Jokes & Cartoons (1967 series) #v2#6	December 1967	—
@@ -33,6 +39,7 @@ USMarvel	previewCartoons and Gags (1959 series) #v10#6	December 1967	1967-10-30
 USMarvel	previewCartoons and Gags (1959 series) #v10#6 [British]	December 1967	—
 USHarvey	previewCasper's Ghostland (1959 series) #39	December 1967	1967-09-15
 USHarvey	previewCasper's Ghostland (1959 series) #39 [Canadian]	December 1967	1967
+USDC	previewChallengers of the Unknown (1958 series) #59	December 1967-January 1968	1967-10-03
 USWestern	previewDaffy Duck (1962 series) #51	December 1967	1967-09-07
 USMarvel	previewDaredevil (1964 series) #35	December 1967	1967-10-12
 USHallden; Fawcett	previewDennis the Menace Giant (1958 series) #51 - Dennis the Menace Christmas Special	Winter 1967	—
@@ -47,13 +54,17 @@ USCharlton	previewFightin' Army (1956 series) #77	December 1967	—
 USDC	previewThe Flash (1959 series) #175	December 1967	1967-10-19
 USKing Features	previewFlash Gordon (1966 series) #11	December 1967	1967-12-04
 USWestern	previewThe Flintstones (1962 series) #43	December 1967	1967-10-05
+USDC	previewThe Fox and the Crow (1951 series) #107	December 1967-January 1968	1967-10-24
 USHarvey	previewThe Friendly Ghost, Casper (1958 series) #112	December 1967	1967-09-15
+USDC	previewG.I. Combat (1957 series) #127	December 1967-January 1968	1967-10-10
 USMarvel	previewGaze (1955 series) #72	December 1967	1967
 USCharlton	previewGhostly Tales (1966 series) #64	December 1967	—
 USHealth Knowledge	previewGirlie Fun (1965 series) #9	December 1967	—
 USDC	previewGirls' Romances (1950 series) #129	December 1967	1967-10-12
 USCharlton	previewGood Humor (1961 series) #19	December 1967	—
 USDC	previewGreen Lantern (1960 series) #57	December 1967	1967-10-12
+USDC	previewHawkman (1964 series) #23	December 1967-January 1968	1967-10-12
+USDC	previewHeart Throbs (1957 series) #111	December 1967-January 1968	1967-10-17
 USCharlton	previewHercules (1967 series) #2	December 1967	—
 USCharlton	previewHot Rods and Racing Cars (1951 series) #88	December 1967	—
 USHarvey	previewHot Stuff, the Little Devil (1957 series) #81	December 1967	1967-09-15
@@ -78,6 +89,7 @@ USNew American Library	previewThe Mad Adventures of Captain Klutz (1967 series) 
 USWestern	previewMarge's Little Lulu (1962 series) #186	December 1967	1967-09-21
 USMarvel	previewMarvel Collectors' Item Classics (1965 series) #12	December 1967	1967-08-31
 USMarvel	previewMarvel Super-Heroes (1967 series) #12	December 1967	1967-10-10
+USDC	previewMetal Men (1963 series) #29	December 1967-January 1968	1967-10-19
 USMarvel	previewMillie the Model (1966 series) #156	December 1967	1967-08-31
 USDell	previewMission: Impossible (1967 series) #3	December 1967	1967-09-06
 USDell	previewThe Monkees (1967 series) #7	December 1967	1967-09-06
@@ -101,9 +113,11 @@ USMarvel	previewSgt. Fury (1963 series) #49	December 1967	1967-10-03
 USPrize	previewSick (1960 series) #v8#1 (57)	December 1967	1967-10-02
 USWestern	previewSpace Family Robinson Lost in Space (1966 series) #25	December 1967	1967-10-19
 USHarvey	previewSpooky (1955 series) #101	December 1967	1967-09-15
+USDC	previewStar Spangled War Stories (1952 series) #136	December 1967-January 1968	1967-10-17
 USMarvel	previewStare (1951 series) #78	December 1967	—
 USDC	previewStrange Adventures (1950 series) #207	December 1967	1967-10-31
 USMarvel	previewStrange Tales (1951 series) #163	December 1967	1967-08-31
+USDC	previewSugar & Spike (1956 series) #74	December 1967-January 1968	1967-10-17
 USDC	previewSuperboy (1949 series) #143	December 1967	1967-10-05
 USDC	previewSuperman (1939 series) #202	December 1967-January 1968	1967-10-17
 USDC	previewSuperman's Pal, Jimmy Olsen (1954 series) #107	December 1967	1967-10-10
