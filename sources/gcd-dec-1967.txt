@@ -20,7 +20,6 @@ USCharlton	previewBilly the Kid (1957 series) #64	December 1967	—
 USKing Features	previewBlondie (1966 series) #175	December 1967	1967-12-04
 USCharlton	previewBlue Beetle (1967 series) #4	December 1967	—
 USWestern	previewBoris Karloff Tales of Mystery (1963 series) #20	December 1967	1967-09-07
-USDC	previewThe Brave and the Bold (1955 series) #75	December 1967-January 1968	1967-10-24
 USPrize	previewBroadway Laughs (1950 series) #v9#3	December 1967	—
 USWestern	previewBugs Bunny Winter Fun (1967 series) #1	December 1967	—
 USMarvel	previewCampus Jokes & Cartoons (1967 series) #v2#6	December 1967	—
@@ -34,7 +33,6 @@ USMarvel	previewCartoons and Gags (1959 series) #v10#6	December 1967	1967-10-30
 USMarvel	previewCartoons and Gags (1959 series) #v10#6 [British]	December 1967	—
 USHarvey	previewCasper's Ghostland (1959 series) #39	December 1967	1967-09-15
 USHarvey	previewCasper's Ghostland (1959 series) #39 [Canadian]	December 1967	1967
-USDC	previewChallengers of the Unknown (1958 series) #59	December 1967-January 1968	1967-10-03
 USWestern	previewDaffy Duck (1962 series) #51	December 1967	1967-09-07
 USMarvel	previewDaredevil (1964 series) #35	December 1967	1967-10-12
 USHallden; Fawcett	previewDennis the Menace Giant (1958 series) #51 - Dennis the Menace Christmas Special	Winter 1967	—
@@ -49,7 +47,6 @@ USCharlton	previewFightin' Army (1956 series) #77	December 1967	—
 USDC	previewThe Flash (1959 series) #175	December 1967	1967-10-19
 USKing Features	previewFlash Gordon (1966 series) #11	December 1967	1967-12-04
 USWestern	previewThe Flintstones (1962 series) #43	December 1967	1967-10-05
-USDC	previewThe Fox and the Crow (1951 series) #107	December 1967-January 1968	1967-10-24
 USHarvey	previewThe Friendly Ghost, Casper (1958 series) #112	December 1967	1967-09-15
 USDC	previewG.I. Combat (1957 series) #127	December 1967-January 1968	1967-10-10
 USMarvel	previewGaze (1955 series) #72	December 1967	1967
