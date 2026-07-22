@@ -78,7 +78,6 @@ USNew American Library	previewThe Mad Adventures of Captain Klutz (1967 series) 
 USWestern	previewMarge's Little Lulu (1962 series) #186	December 1967	1967-09-21
 USMarvel	previewMarvel Collectors' Item Classics (1965 series) #12	December 1967	1967-08-31
 USMarvel	previewMarvel Super-Heroes (1967 series) #12	December 1967	1967-10-10
-USDC	previewMetal Men (1963 series) #29	December 1967-January 1968	1967-10-19
 USMarvel	previewMillie the Model (1966 series) #156	December 1967	1967-08-31
 USDell	previewMission: Impossible (1967 series) #3	December 1967	1967-09-06
 USDell	previewThe Monkees (1967 series) #7	December 1967	1967-09-06
@@ -102,11 +101,9 @@ USMarvel	previewSgt. Fury (1963 series) #49	December 1967	1967-10-03
 USPrize	previewSick (1960 series) #v8#1 (57)	December 1967	1967-10-02
 USWestern	previewSpace Family Robinson Lost in Space (1966 series) #25	December 1967	1967-10-19
 USHarvey	previewSpooky (1955 series) #101	December 1967	1967-09-15
-USDC	previewStar Spangled War Stories (1952 series) #136	December 1967-January 1968	1967-10-17
 USMarvel	previewStare (1951 series) #78	December 1967	—
 USDC	previewStrange Adventures (1950 series) #207	December 1967	1967-10-31
 USMarvel	previewStrange Tales (1951 series) #163	December 1967	1967-08-31
-USDC	previewSugar & Spike (1956 series) #74	December 1967-January 1968	1967-10-17
 USDC	previewSuperboy (1949 series) #143	December 1967	1967-10-05
 USDC	previewSuperman (1939 series) #202	December 1967-January 1968	1967-10-17
 USDC	previewSuperman's Pal, Jimmy Olsen (1954 series) #107	December 1967	1967-10-10
