@@ -104,6 +104,32 @@
   .card h3 { margin: 8px 0 2px; font-size: 1rem; }
   .card .issue { color: var(--muted); font-size: 0.85rem; }
   .card .pub { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card.owned { background: #eef6ea; border-color: #a4c493; }
+  .own-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dotted var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .own-row input { cursor: pointer; }
+  .card.owned .own-row { color: #3a5f2c; font-weight: bold; }
+
+  .filter-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: var(--muted);
+  }
+  .filter-row label { cursor: pointer; }
+  .stats { margin-left: auto; }
 
   .empty {
     padding: 32px;
@@ -132,6 +158,12 @@
     <div class="search-bar">
       <input id="search" type="search" placeholder="Search by title, character, writer, artist..." />
     </div>
+    <div class="filter-row">
+      <label><input type="radio" name="owned-filter" value="" checked /> All</label>
+      <label><input type="radio" name="owned-filter" value="1" /> Owned only</label>
+      <label><input type="radio" name="owned-filter" value="0" /> Missing only</label>
+      <span class="stats" id="stats"></span>
+    </div>
     <div id="results" class="grid"></div>
     <div id="empty" class="empty" style="display:none">No comics yet. Data will appear as it's added to the database.</div>
   </main>
@@ -140,6 +172,14 @@
 <script>
   let currentPublisher = "";
   let currentQuery = "";
+  let currentOwned = "";
+
+  async function loadStats() {
+    const r = await fetch("/api/stats");
+    const s = await r.json();
+    document.getElementById("stats").textContent =
+      `${s.owned} / ${s.total} owned`;
+  }
 
   async function loadPublishers() {
     const r = await fetch("/api/publishers");
@@ -185,7 +225,8 @@
     empty.style.display = "none";
     for (const c of data) {
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card" + (c.owned ? " owned" : "");
+      card.dataset.id = c.id;
       const cover = c.cover_image
         ? `<img src="/covers/${c.cover_image}" alt="${c.title} cover" />`
         : `<div class="no-cover">no cover</div>`;
@@ -194,7 +235,25 @@
         <div class="pub">${c.publisher}</div>
         <h3>${c.title}</h3>
         <div class="issue">${c.issue_number ? "#" + c.issue_number : ""} &middot; ${c.cover_date || ""}</div>
+        <label class="own-row">
+          <input type="checkbox" ${c.owned ? "checked" : ""} />
+          <span>${c.owned ? "In collection" : "Mark as owned"}</span>
+        </label>
       `;
+      const cb = card.querySelector('input[type=checkbox]');
+      cb.addEventListener('change', async () => {
+        const resp = await fetch(`/api/comics/${c.id}/owned`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({owned: cb.checked}),
+        });
+        const j = await resp.json();
+        card.classList.toggle("owned", j.owned);
+        card.querySelector(".own-row span").textContent =
+          j.owned ? "In collection" : "Mark as owned";
+        loadStats();
+        if (currentOwned !== "") loadComics();
+      });
       grid.appendChild(card);
     }
   }
@@ -204,7 +263,15 @@
     loadComics();
   });
 
+  document.querySelectorAll('input[name="owned-filter"]').forEach(el => {
+    el.addEventListener("change", () => {
+      currentOwned = el.checked ? el.value : currentOwned;
+      loadComics();
+    });
+  });
+
   loadPublishers();
+  loadStats();
   loadComics();
 </script>
 </body>

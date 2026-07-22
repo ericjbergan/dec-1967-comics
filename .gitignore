@@ -5,3 +5,7 @@ venv/
 .env
 .DS_Store
 Thumbs.db
+
+# GCD full-database dump — huge, not ours to redistribute
+current.zip
+sources/gcd-*.db

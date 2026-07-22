@@ -73,7 +73,7 @@ def parse_line(line):
 
     issue_number = rest
 
-    notes_parts = [f"GCD import; series began {series_year}"]
+    notes_parts = []
     if variant:
         notes_parts.append(f"variant: {variant}")
     if subtitle:
@@ -82,10 +82,11 @@ def parse_line(line):
     return {
         "publisher": publisher,
         "title": title,
+        "series_year": int(series_year),
         "issue_number": issue_number,
         "cover_date": cover_date.strip(),
         "on_sale_date": on_sale.strip() if on_sale.strip() != "—" else None,
-        "notes": "; ".join(notes_parts),
+        "notes": "; ".join(notes_parts) if notes_parts else None,
     }, None
 
 
@@ -112,9 +113,10 @@ def main():
     for r in parsed:
         conn.execute(
             """INSERT INTO comics
-               (publisher, title, issue_number, cover_date, on_sale_date, notes)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (r["publisher"], r["title"], r["issue_number"],
+               (publisher, title, series_year, issue_number,
+                cover_date, on_sale_date, notes)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (r["publisher"], r["title"], r["series_year"], r["issue_number"],
              r["cover_date"], r["on_sale_date"], r["notes"]),
         )
     conn.commit()

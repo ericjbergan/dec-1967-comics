@@ -22,11 +22,12 @@ def init_db():
                 id             INTEGER PRIMARY KEY AUTOINCREMENT,
                 publisher      TEXT NOT NULL,
                 title          TEXT NOT NULL,
+                series_year    INTEGER,
                 issue_number   TEXT,
                 cover_date     TEXT DEFAULT 'December 1967',
                 on_sale_date   TEXT,
                 price          TEXT,
-                page_count     INTEGER,
+                page_count     REAL,
                 cover_image    TEXT,
                 writer         TEXT,
                 artist         TEXT,
@@ -36,12 +37,14 @@ def init_db():
                 characters     TEXT,
                 synopsis       TEXT,
                 notes          TEXT,
+                owned          INTEGER NOT NULL DEFAULT 0,
                 created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
             CREATE INDEX IF NOT EXISTS idx_comics_publisher ON comics(publisher COLLATE NOCASE);
             CREATE INDEX IF NOT EXISTS idx_comics_title     ON comics(title COLLATE NOCASE);
+            CREATE INDEX IF NOT EXISTS idx_comics_owned     ON comics(owned);
 
             CREATE TRIGGER IF NOT EXISTS comics_updated_at
             AFTER UPDATE ON comics
@@ -74,12 +77,17 @@ def list_publishers():
 def list_comics():
     publisher = request.args.get("publisher", "").strip()
     q = request.args.get("q", "").strip()
+    owned = request.args.get("owned", "").strip().lower()
 
     sql = "SELECT * FROM comics WHERE 1=1"
     params = []
     if publisher:
         sql += " AND publisher = ? COLLATE NOCASE"
         params.append(publisher)
+    if owned in ("1", "true", "yes"):
+        sql += " AND owned = 1"
+    elif owned in ("0", "false", "no"):
+        sql += " AND owned = 0"
     if q:
         sql += (
             " AND (title LIKE ? COLLATE NOCASE"
@@ -142,6 +150,28 @@ def update_comic(comic_id):
         if cur.rowcount == 0:
             abort(404)
     return jsonify({"ok": True})
+
+
+@app.route("/api/comics/<int:comic_id>/owned", methods=["POST"])
+def set_owned(comic_id):
+    data = request.get_json(force=True, silent=True) or {}
+    owned = 1 if data.get("owned") else 0
+    with get_db() as conn:
+        cur = conn.execute(
+            "UPDATE comics SET owned = ? WHERE id = ?", (owned, comic_id)
+        )
+        if cur.rowcount == 0:
+            abort(404)
+    return jsonify({"id": comic_id, "owned": bool(owned)})
+
+
+@app.route("/api/stats")
+def stats():
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS total, SUM(owned) AS owned FROM comics"
+        ).fetchone()
+    return jsonify({"total": row["total"], "owned": row["owned"] or 0})
 
 
 @app.route("/api/comics/<int:comic_id>", methods=["DELETE"])
