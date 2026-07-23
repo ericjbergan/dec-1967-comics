@@ -379,10 +379,9 @@
     const low = '$' + c.value_low.toFixed(2);
     const med = '$' + c.value_median.toFixed(2);
     const age = daysSince(c.value_updated);
-    const ageLabel = age === 0 ? 'today' : (age === 1 ? '1d ago' : `${age}d ago`);
     const ageClass = (age != null && age > 30) ? 'stale' : '';
     return `<span>eBay: <span class="amount">${low}</span>–<span class="amount">${med}</span>` +
-           ` <span class="${ageClass}">(${ageLabel}, n=${c.value_count})</span></span>${refreshBtn}`;
+           ` <span class="${ageClass}">(${c.value_updated}, n=${c.value_count})</span></span>${refreshBtn}`;
   }
 
   async function refreshValue(comicId, card) {
