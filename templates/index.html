@@ -152,6 +152,42 @@
   }
   .ebay-btn:hover { background: #0053b0; }
   .ebay-btn:disabled { background: #999; cursor: wait; }
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dotted var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .value-row .amount { color: var(--ink); font-weight: bold; }
+  .value-row .refresh {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--muted);
+  }
+  .value-row .refresh:hover { background: #f0ece0; }
+  .value-row .refresh:disabled { cursor: wait; opacity: 0.5; }
+  .value-row .stale { color: var(--accent); }
+  .bulk-refresh {
+    background: #4a7040;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .bulk-refresh:hover { background: #3a5f2c; }
+  .bulk-refresh:disabled { background: #999; cursor: wait; }
   #ebay-modal {
     position: fixed;
     inset: 0;
@@ -264,6 +300,7 @@
       <label><input type="radio" name="owned-filter" value="" checked /> All</label>
       <label><input type="radio" name="owned-filter" value="1" /> Owned only</label>
       <label><input type="radio" name="owned-filter" value="0" /> Missing only</label>
+      <button class="bulk-refresh" id="bulk-refresh" title="Refresh eBay values for all owned issues">Refresh owned values</button>
       <span class="stats" id="stats"></span>
     </div>
     <div id="results" class="grid"></div>
@@ -323,6 +360,54 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && ebayModal.classList.contains("open")) closeEbayModal();
   });
+
+  function daysSince(iso) {
+    if (!iso) return null;
+    const then = new Date(iso + "T00:00:00");
+    const now = new Date();
+    return Math.floor((now - then) / 86400000);
+  }
+
+  function formatValueRow(c) {
+    const refreshBtn = '<button class="refresh" title="Refresh eBay value">↻</button>';
+    if (c.value_updated == null) {
+      return `<span>eBay: <em>not checked</em></span>${refreshBtn}`;
+    }
+    if (c.value_count === 0 || c.value_low == null) {
+      return `<span>eBay: <em>no matches</em></span>${refreshBtn}`;
+    }
+    const low = '$' + c.value_low.toFixed(2);
+    const med = '$' + c.value_median.toFixed(2);
+    const age = daysSince(c.value_updated);
+    const ageLabel = age === 0 ? 'today' : (age === 1 ? '1d ago' : `${age}d ago`);
+    const ageClass = (age != null && age > 30) ? 'stale' : '';
+    return `<span>eBay: <span class="amount">${low}</span>–<span class="amount">${med}</span>` +
+           ` <span class="${ageClass}">(${ageLabel}, n=${c.value_count})</span></span>${refreshBtn}`;
+  }
+
+  async function refreshValue(comicId, card) {
+    const row = card.querySelector('.value-row');
+    const btn = row.querySelector('.refresh');
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+      const r = await fetch(`/api/comics/${comicId}/refresh-value`, {method: 'POST'});
+      const j = await r.json();
+      if (!r.ok) {
+        row.innerHTML = `<span class="stale">Error: ${j.error || 'failed'}</span>` +
+                        '<button class="refresh" title="Retry">↻</button>';
+      } else {
+        row.innerHTML = formatValueRow({
+          value_low: j.low, value_median: j.median,
+          value_count: j.count, value_updated: j.updated,
+        });
+      }
+    } catch (e) {
+      row.innerHTML = `<span class="stale">Error: ${e.message}</span>` +
+                      '<button class="refresh" title="Retry">↻</button>';
+    }
+    const newBtn = row.querySelector('.refresh');
+    if (newBtn) newBtn.addEventListener('click', () => refreshValue(comicId, card));
+  }
 
   function formatPrice(l) {
     if (l.price == null) return '<span class="total">—</span>';
@@ -442,6 +527,7 @@
           <span>${c.owned ? "In collection" : "Mark as owned"}</span>
         </label>
         <button class="ebay-btn">Search eBay</button>
+        <div class="value-row">${formatValueRow(c)}</div>
       `;
       const fileInput = card.querySelector('.file-input');
       const coverTrigger = card.querySelector('.no-cover, .cover-wrap');
@@ -462,6 +548,11 @@
       ebayBtn.addEventListener('click', () => {
         openEbayModal(c);
       });
+
+      const refreshBtn = card.querySelector('.value-row .refresh');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => refreshValue(c.id, card));
+      }
 
       const cb = card.querySelector('.own-row input[type=checkbox]');
       cb.addEventListener('change', async () => {
@@ -487,6 +578,25 @@
     currentQuery = e.target.value.trim();
     saveState();
     loadComics();
+  });
+
+  document.getElementById("bulk-refresh").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    if (!confirm("Refresh eBay values for all owned comics? This will hit eBay once per row and can take a minute or two.")) return;
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = "Refreshing…";
+    try {
+      const r = await fetch("/api/refresh-values?scope=owned", {method: "POST"});
+      const j = await r.json();
+      alert(`Processed ${j.processed}. Updated ${j.updated}. Errored ${j.errored}.`);
+      loadComics();
+    } catch (err) {
+      alert("Refresh failed: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
   });
 
   document.querySelectorAll('input[name="owned-filter"]').forEach(el => {

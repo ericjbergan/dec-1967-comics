@@ -1,6 +1,8 @@
 import os
 import re
 import sqlite3
+import statistics
+from datetime import date
 from flask import Flask, request, jsonify, render_template, send_from_directory, abort
 
 from ebay_api import eBayComicSearch
@@ -49,6 +51,10 @@ def init_db():
                 synopsis       TEXT,
                 notes          TEXT,
                 owned          INTEGER NOT NULL DEFAULT 0,
+                value_low      REAL,
+                value_median   REAL,
+                value_count    INTEGER,
+                value_updated  TEXT,
                 created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP
             );
@@ -284,6 +290,92 @@ def search_ebay(comic_id):
     return jsonify({
         "query": f'{row["title"]} #{row["issue_number"]} {year} {row["publisher"]}',
         "listings": listings,
+    })
+
+
+def _compute_and_store_value(conn, row):
+    """Search eBay for this comic, compute low/median from top-5 filtered
+    listings, persist to the row. Returns a dict with the new values,
+    or an error dict."""
+    year = _issue_year(row)
+    try:
+        listings = _ebay_client.search(
+            publisher=row["publisher"],
+            title=row["title"],
+            issue_number=row["issue_number"] or "",
+            year=year,
+            limit=25,
+        )
+    except Exception as e:
+        return {"error": str(e)}
+
+    totals = sorted(l["total"] for l in listings if l.get("total") is not None)
+    if not totals:
+        conn.execute(
+            "UPDATE comics SET value_low = NULL, value_median = NULL, "
+            "value_count = 0, value_updated = ? WHERE id = ?",
+            (date.today().isoformat(), row["id"]),
+        )
+        return {"low": None, "median": None, "count": 0,
+                "updated": date.today().isoformat()}
+
+    low = totals[0]
+    median = statistics.median(totals[:5])
+    updated = date.today().isoformat()
+    conn.execute(
+        "UPDATE comics SET value_low = ?, value_median = ?, "
+        "value_count = ?, value_updated = ? WHERE id = ?",
+        (low, median, len(totals), updated, row["id"]),
+    )
+    return {"low": low, "median": median, "count": len(totals),
+            "updated": updated}
+
+
+@app.route("/api/comics/<int:comic_id>/refresh-value", methods=["POST"])
+def refresh_value(comic_id):
+    if _ebay_client is None:
+        return jsonify({"error": "eBay credentials not configured"}), 503
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, publisher, title, issue_number, on_sale_date, "
+            "cover_date, series_year FROM comics WHERE id = ?",
+            (comic_id,),
+        ).fetchone()
+        if not row:
+            abort(404)
+        result = _compute_and_store_value(conn, row)
+    if "error" in result:
+        return jsonify(result), 502
+    return jsonify({"id": comic_id, **result})
+
+
+@app.route("/api/refresh-values", methods=["POST"])
+def refresh_values_bulk():
+    """Refresh value for owned comics by default, or all with ?scope=all."""
+    if _ebay_client is None:
+        return jsonify({"error": "eBay credentials not configured"}), 503
+    scope = request.args.get("scope", "owned").lower()
+    where = "" if scope == "all" else "WHERE owned = 1"
+
+    updated = []
+    errored = []
+    with get_db() as conn:
+        rows = conn.execute(
+            f"SELECT id, publisher, title, issue_number, on_sale_date, "
+            f"cover_date, series_year FROM comics {where}"
+        ).fetchall()
+        for row in rows:
+            r = _compute_and_store_value(conn, row)
+            if "error" in r:
+                errored.append({"id": row["id"], "error": r["error"]})
+            else:
+                updated.append({"id": row["id"], **r})
+    return jsonify({
+        "scope": scope,
+        "processed": len(rows),
+        "updated": len(updated),
+        "errored": len(errored),
+        "errors": errored[:5],
     })
 
 
