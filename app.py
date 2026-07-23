@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 from flask import Flask, request, jsonify, render_template, send_from_directory, abort
 
@@ -241,28 +242,47 @@ def delete_cover(comic_id):
     return jsonify({"id": comic_id, "cover_image": None})
 
 
+_YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
+
+
+def _issue_year(row):
+    """Pick the best year hint for an eBay query: on-sale > cover date > series year > 1967."""
+    for field in ("on_sale_date", "cover_date"):
+        val = row[field] if field in row.keys() else None
+        if val:
+            m = _YEAR_RE.search(val)
+            if m:
+                return int(m.group())
+    if "series_year" in row.keys() and row["series_year"]:
+        return int(row["series_year"])
+    return 1967
+
+
 @app.route("/api/comics/<int:comic_id>/ebay")
 def search_ebay(comic_id):
     if _ebay_client is None:
         return jsonify({"error": "eBay credentials not configured"}), 503
     with get_db() as conn:
         row = conn.execute(
-            "SELECT publisher, title, issue_number FROM comics WHERE id = ?",
+            "SELECT publisher, title, issue_number, on_sale_date, cover_date, series_year "
+            "FROM comics WHERE id = ?",
             (comic_id,),
         ).fetchone()
     if not row:
         abort(404)
+    year = _issue_year(row)
     try:
         listings = _ebay_client.search(
             publisher=row["publisher"],
             title=row["title"],
             issue_number=row["issue_number"] or "",
+            year=year,
             limit=25,
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 502
     return jsonify({
-        "query": f'{row["title"]} #{row["issue_number"]} {row["publisher"]}',
+        "query": f'{row["title"]} #{row["issue_number"]} {year} {row["publisher"]}',
         "listings": listings,
     })
 
