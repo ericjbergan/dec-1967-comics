@@ -7,6 +7,7 @@ Buy It Now + auction listings that match "Amazing Spider-Man #55" so I
 can eyeball prices and click through.
 """
 import base64
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Tuple
@@ -86,7 +87,10 @@ class eBayComicSearch:
         if title.lower().startswith("the "):
             display_title = title[4:]
 
-        query = f"{display_title} #{issue_number} {year} {publisher}".strip()
+        # Quote the title so eBay treats it as a phrase, not loose words.
+        # For a common phrase like "Secret Wars", unquoted searches surface
+        # every tie-in ("Secret Wars 2099", "Secret Wars: Battleworld", …).
+        query = f'"{display_title}" #{issue_number} {year} {publisher}'.strip()
 
         resp = requests.get(
             self.browse_url,
@@ -97,18 +101,55 @@ class eBayComicSearch:
             },
             params={
                 "q": query,
-                "limit": min(limit, 50),
+                "limit": 200,  # fetch max so post-filter has room
                 "category_ids": COMIC_CATEGORY_IDS,
                 "filter": "deliveryCountry:US",
-                "sort": "price",
+                # No sort — use eBay's bestMatch relevance so tie-in cheap
+                # junk doesn't drown out real main-series listings. We sort
+                # by price client-side after our strict-title filter runs.
             },
             timeout=20,
         )
         resp.raise_for_status()
         data = resp.json()
 
+        # Build a regex requiring the listing title to START with "{title}"
+        # (optionally after a bland brand/date prefix), then optional year in
+        # parens, then "#{issue}". This anchors the match at the start so
+        # tie-in prefixes like "CIVIL WAR:", "Battleworld Runaways - ",
+        # or "Marvel: X-Tinction Agenda - " get rejected — they push our
+        # title into the middle of the listing name.
+        title_pat = re.escape(display_title)
+        issue_pat = re.escape(issue_number) if issue_number else r"\d+"
+        prefix_pat = (
+            r"(?:"
+            r"marvel(?:\s+comics)?\s+|"
+            r"dc(?:\s+comics)?\s+|"
+            r"\d{4}\s+(?:marvel|dc)(?:\s+comics)?\s+|"
+            r"the\s+"
+            r")?"
+        )
+        strict_re = re.compile(
+            rf"^\s*{prefix_pat}{title_pat}\s+(?:\(\d{{4}}\)\s+)?#\s*{issue_pat}\b",
+            re.IGNORECASE,
+        )
+        # Drop retailer-incentive and variant-cover listings — they skew price
+        # heavily and rarely match what a normal collector has on the shelf.
+        variant_re = re.compile(
+            r"\b(?:variant|incentive|sketch\s+variant|blank\s+sketch|"
+            r"virgin\s+cover|foil|1:\d+|custom\s+edition|action\s+figure)\b",
+            re.IGNORECASE,
+        )
+
         results = []
         for item in data.get("itemSummaries", []):
+            listing_title = item.get("title", "")
+            if not strict_re.search(listing_title):
+                continue
+            if variant_re.search(listing_title):
+                continue
+            if len(results) >= limit:
+                break
             price = item.get("price") or {}
             image = item.get("image") or {}
             thumbnails = item.get("thumbnailImages") or []
@@ -140,6 +181,8 @@ class eBayComicSearch:
             })
 
         self._fill_missing_shipping(results)
+        # Sort by total price ascending (nulls last) so cheapest bubble up
+        results.sort(key=lambda r: (r.get("total") is None, r.get("total") or 0))
         return results
 
     def _fill_missing_shipping(self, results: List[Dict]) -> None:
