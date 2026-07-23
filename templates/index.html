@@ -285,9 +285,28 @@
 </div>
 
 <script>
-  let currentPublisher = "";
-  let currentQuery = "";
-  let currentOwned = "";
+  // Persist view state (which publisher, search, owned filter, scroll position)
+  // across page refreshes so the page always comes back to where you left it.
+  // Turn off the browser's own guess — it fires before our async content loads.
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  const STATE_KEY = "dec1967comics.state";
+  function readState() {
+    try { return JSON.parse(localStorage.getItem(STATE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveState() {
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      publisher: currentPublisher,
+      query: currentQuery,
+      owned: currentOwned,
+      scrollY: window.scrollY,
+    }));
+  }
+  const initialState = readState();
+
+  let currentPublisher = initialState.publisher || "";
+  let currentQuery = initialState.query || "";
+  let currentOwned = initialState.owned || "";
 
   const ebayModal = document.getElementById("ebay-modal");
   const ebayTitle = document.getElementById("ebay-title");
@@ -379,6 +398,7 @@
     currentPublisher = pub;
     document.querySelectorAll(".pub-list li").forEach(li => li.classList.remove("active"));
     el.classList.add("active");
+    saveState();
     loadComics();
   }
 
@@ -390,6 +410,7 @@
     const params = new URLSearchParams();
     if (currentPublisher) params.set("publisher", currentPublisher);
     if (currentQuery) params.set("q", currentQuery);
+    if (currentOwned) params.set("owned", currentOwned);
     const r = await fetch("/api/comics?" + params.toString());
     const data = await r.json();
     const grid = document.getElementById("results");
@@ -460,21 +481,50 @@
     }
   }
 
-  document.getElementById("search").addEventListener("input", (e) => {
+  const searchInput = document.getElementById("search");
+  searchInput.value = currentQuery;
+  searchInput.addEventListener("input", (e) => {
     currentQuery = e.target.value.trim();
+    saveState();
     loadComics();
   });
 
   document.querySelectorAll('input[name="owned-filter"]').forEach(el => {
+    if (el.value === currentOwned) el.checked = true;
     el.addEventListener("change", () => {
-      currentOwned = el.checked ? el.value : currentOwned;
+      if (el.checked) currentOwned = el.value;
+      saveState();
       loadComics();
     });
   });
 
-  loadPublishers();
-  loadStats();
-  loadComics();
+  // Throttle scroll writes: at most once every 150ms while scrolling,
+  // plus a final write on unload as a safety net.
+  let scrollTimer = null;
+  window.addEventListener("scroll", () => {
+    if (scrollTimer) return;
+    scrollTimer = setTimeout(() => {
+      saveState();
+      scrollTimer = null;
+    }, 150);
+  }, {passive: true});
+  window.addEventListener("beforeunload", saveState);
+
+  async function init() {
+    await loadPublishers();
+    // Mark the persisted publisher active in the sidebar
+    const activeLi = document.querySelector(
+      `.pub-list li[data-pub="${CSS.escape(currentPublisher)}"]`
+    );
+    if (activeLi) {
+      document.querySelectorAll(".pub-list li").forEach(li => li.classList.remove("active"));
+      activeLi.classList.add("active");
+    }
+    loadStats();
+    await loadComics();
+    if (initialState.scrollY) window.scrollTo(0, initialState.scrollY);
+  }
+  init();
 </script>
 </body>
 </html>
