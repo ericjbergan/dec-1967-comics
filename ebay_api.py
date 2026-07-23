@@ -7,8 +7,9 @@ Buy It Now + auction listings that match "Amazing Spider-Man #55" so I
 can eyeball prices and click through.
 """
 import base64
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 
 import requests
 
@@ -16,12 +17,18 @@ import requests
 # We keep it wide so cross-listed and category-tagged items still surface.
 COMIC_CATEGORY_IDS = "63"
 
+# ZIP used to force calculated-shipping quotes. NYC keeps costs middle-of-the-road
+# for a US buyer; the actual buyer's ZIP would give a slightly different number.
+DEFAULT_SHIPPING_ZIP = "10001"
+
 
 class eBayComicSearch:
     PROD_TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
     PROD_BROWSE_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
+    PROD_ITEM_URL = "https://api.ebay.com/buy/browse/v1/item/"
     SANDBOX_TOKEN_URL = "https://api.sandbox.ebay.com/identity/v1/oauth2/token"
     SANDBOX_BROWSE_URL = "https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search"
+    SANDBOX_ITEM_URL = "https://api.sandbox.ebay.com/buy/browse/v1/item/"
 
     def __init__(self, app_id: str, cert_id: str, sandbox: bool = False):
         self.app_id = app_id
@@ -29,6 +36,7 @@ class eBayComicSearch:
         self.sandbox = sandbox
         self.token_url = self.SANDBOX_TOKEN_URL if sandbox else self.PROD_TOKEN_URL
         self.browse_url = self.SANDBOX_BROWSE_URL if sandbox else self.PROD_BROWSE_URL
+        self.item_url = self.SANDBOX_ITEM_URL if sandbox else self.PROD_ITEM_URL
         self._token: Optional[str] = None
         self._token_expires: Optional[datetime] = None
 
@@ -117,6 +125,7 @@ class eBayComicSearch:
                 total_val = price_val + shipping_val
 
             results.append({
+                "item_id": item.get("itemId"),
                 "title": item.get("title", ""),
                 "price": price_val,
                 "shipping": shipping_val,
@@ -130,7 +139,49 @@ class eBayComicSearch:
                 "seller": (item.get("seller") or {}).get("username", ""),
             })
 
+        self._fill_missing_shipping(results)
         return results
+
+    def _fill_missing_shipping(self, results: List[Dict]) -> None:
+        """Fetch item details in parallel for any listing whose summary
+        didn't include a shipping amount (calculated-shipping listings)."""
+        needs = [r for r in results if r["shipping"] is None and r.get("item_id")]
+        if not needs:
+            return
+
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {
+                pool.submit(self._fetch_item_shipping, r["item_id"]): r
+                for r in needs
+            }
+            for future in futures:
+                shipping, free = future.result()
+                r = futures[future]
+                if shipping is None:
+                    continue
+                r["shipping"] = shipping
+                r["shipping_free"] = free
+                if r["price"] is not None:
+                    r["total"] = r["price"] + shipping
+
+    def _fetch_item_shipping(self, item_id: str) -> Tuple[Optional[float], bool]:
+        """Fetch full item details to resolve calculated shipping for a US ZIP."""
+        try:
+            token = self._get_token()
+            resp = requests.get(
+                f"{self.item_url}{item_id}",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+                    "X-EBAY-C-ENDUSERCTX":
+                        f"contextualLocation=country=US,zip={DEFAULT_SHIPPING_ZIP}",
+                },
+                timeout=8,
+            )
+            resp.raise_for_status()
+            return _extract_shipping(resp.json())
+        except requests.RequestException:
+            return (None, False)
 
 
 def _to_float(v):
@@ -142,19 +193,20 @@ def _to_float(v):
 
 def _extract_shipping(item):
     """
-    Pull shipping cost from an item summary.
+    Pull shipping cost from an item summary or full item response.
 
-    Returns (shipping_amount, is_free). Unknown shipping returns (None, False).
+    Returns (shipping_amount, is_free). Unknown returns (None, False).
     Free returns (0.0, True). A specific cost returns (amount, False).
+    Accepts any option with a numeric shippingCost — FIXED, CALCULATED with
+    a resolved value (present when the request carried a ZIP context), or
+    FREE / zero cost.
     """
     for option in item.get("shippingOptions") or []:
         cost_type = (option.get("shippingCostType") or "").upper()
         cost = option.get("shippingCost") or {}
         val = _to_float(cost.get("value"))
-        if cost_type == "FIXED" and val is not None:
+        if val is not None:
             return (val, val == 0.0)
         if "FREE" in cost_type:
-            return (0.0, True)
-        if val == 0.0:
             return (0.0, True)
     return (None, False)
