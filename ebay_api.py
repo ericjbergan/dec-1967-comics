@@ -140,6 +140,32 @@ class eBayComicSearch:
             r"virgin\s+cover|foil|1:\d+|custom\s+edition|action\s+figure)\b",
             re.IGNORECASE,
         )
+        # Drop professionally graded/slabbed copies — they carry a big
+        # premium unrelated to raw condition.
+        graded_re = re.compile(
+            r"\b(?:cgc|cbcs|pgx|egs|graded|slabbed|slab)\b",
+            re.IGNORECASE,
+        )
+        # Drop titles that flag known low/damaged condition. Includes
+        # explicit descriptors ("coverless", "missing cover"), incomplete-
+        # book markers ("water damage", "torn", "reader copy"), and raw
+        # grade shorthand at the low end (Fair through Very Good-minus,
+        # i.e. numeric grades <= 4.5 or the letters Fair/Poor/GD/GD+).
+        poor_re = re.compile(
+            r"\b(?:"
+            r"missing\s+cover|no\s+cover|coverless|"
+            r"missing\s+pages?|incomplete|"
+            r"water\s+damage[d]?|water[- ]?stain[ed]*|"
+            r"torn|tape|taped|repaired|restored|"
+            r"reader\s+copy|reading\s+copy|"
+            r"poor(?:\s+condition)?|fair(?:\s+condition)?|"
+            r"low\s+grade|"
+            r"pr\s*0\.5|fr\s*1\.0|gd\s*1\.5|gd\+?\s*2\.0|"
+            r"vg-\s*3\.5|vg\s*4\.0|vg\+?\s*4\.5|"
+            r"(?:^|[^\d.])[0-4]\.[05]\s*(?:$|[^\d])"
+            r")\b",
+            re.IGNORECASE,
+        )
 
         results = []
         for item in data.get("itemSummaries", []):
@@ -147,6 +173,10 @@ class eBayComicSearch:
             if not strict_re.search(listing_title):
                 continue
             if variant_re.search(listing_title):
+                continue
+            if graded_re.search(listing_title):
+                continue
+            if poor_re.search(listing_title):
                 continue
             if len(results) >= limit:
                 break
