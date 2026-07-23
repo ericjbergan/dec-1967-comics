@@ -212,7 +212,13 @@
   #ebay-modal .lt a { color: #0064d2; text-decoration: none; }
   #ebay-modal .lt a:hover { text-decoration: underline; }
   #ebay-modal .lt .cond { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
-  #ebay-modal .price { font-weight: bold; white-space: nowrap; font-size: 1rem; }
+  #ebay-modal .price {
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  #ebay-modal .price .total { font-weight: bold; font-size: 1rem; }
+  #ebay-modal .price .breakdown { color: var(--muted); font-size: 0.75rem; }
   #ebay-modal .err { color: var(--accent); }
   #ebay-modal .loading { color: var(--muted); text-align: center; padding: 30px 0; }
 
@@ -299,6 +305,23 @@
     if (e.key === "Escape" && ebayModal.classList.contains("open")) closeEbayModal();
   });
 
+  function formatPrice(l) {
+    if (l.price == null) return '<span class="total">—</span>';
+    const price = '$' + l.price.toFixed(2);
+    if (l.shipping == null) {
+      return `<span class="total">${price}</span>
+              <div class="breakdown">+ shipping unknown</div>`;
+    }
+    if (l.shipping_free) {
+      return `<span class="total">${price}</span>
+              <div class="breakdown">free shipping</div>`;
+    }
+    const ship = '$' + l.shipping.toFixed(2);
+    const total = '$' + l.total.toFixed(2);
+    return `<span class="total">${total}</span>
+            <div class="breakdown">${price} + ${ship}</div>`;
+  }
+
   async function openEbayModal(comic) {
     ebayTitle.textContent = `${comic.title} #${comic.issue_number}`;
     ebaySub.textContent = `${comic.publisher} · ${comic.cover_date || ""}`;
@@ -319,7 +342,7 @@
               <a href="${l.url}" target="_blank" rel="noopener">${l.title}</a>
               <div class="cond">${l.condition}${l.seller ? ' · ' + l.seller : ''}</div>
             </div>
-            <div class="price">${l.price != null ? '$' + l.price.toFixed(2) : '—'}</div>
+            <div class="price">${formatPrice(l)}</div>
           </div>
         `).join('');
       }

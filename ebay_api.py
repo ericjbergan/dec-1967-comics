@@ -110,9 +110,18 @@ class eBayComicSearch:
 
             buying_options = item.get("buyingOptions") or []
 
+            price_val = _to_float(price.get("value"))
+            shipping_val, shipping_free = _extract_shipping(item)
+            total_val = None
+            if price_val is not None and shipping_val is not None:
+                total_val = price_val + shipping_val
+
             results.append({
                 "title": item.get("title", ""),
-                "price": _to_float(price.get("value")),
+                "price": price_val,
+                "shipping": shipping_val,
+                "shipping_free": shipping_free,
+                "total": total_val,
                 "currency": price.get("currency", "USD"),
                 "condition": item.get("condition") or "Unknown",
                 "buying_options": buying_options,
@@ -129,3 +138,23 @@ def _to_float(v):
         return float(v) if v is not None else None
     except (TypeError, ValueError):
         return None
+
+
+def _extract_shipping(item):
+    """
+    Pull shipping cost from an item summary.
+
+    Returns (shipping_amount, is_free). Unknown shipping returns (None, False).
+    Free returns (0.0, True). A specific cost returns (amount, False).
+    """
+    for option in item.get("shippingOptions") or []:
+        cost_type = (option.get("shippingCostType") or "").upper()
+        cost = option.get("shippingCost") or {}
+        val = _to_float(cost.get("value"))
+        if cost_type == "FIXED" and val is not None:
+            return (val, val == 0.0)
+        if "FREE" in cost_type:
+            return (0.0, True)
+        if val == 0.0:
+            return (0.0, True)
+    return (None, False)
