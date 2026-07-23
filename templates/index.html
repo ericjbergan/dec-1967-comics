@@ -139,6 +139,45 @@
   }
   .own-row input { cursor: pointer; }
   .card.owned .own-row { color: #3a5f2c; font-weight: bold; }
+  .ebay-btn {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #0064d2;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .ebay-btn:hover { background: #0053b0; }
+  .ebay-btn:disabled { background: #999; cursor: wait; }
+  .ebay-panel {
+    margin-top: 8px;
+    padding: 8px;
+    background: #fafafa;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .ebay-panel .listing {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--border);
+    align-items: start;
+  }
+  .ebay-panel .listing:last-child { border-bottom: none; }
+  .ebay-panel img { width: 48px; height: 48px; object-fit: cover; }
+  .ebay-panel .no-thumb { width: 48px; height: 48px; background: #ddd; }
+  .ebay-panel .lt { line-height: 1.2; }
+  .ebay-panel .lt a { color: #0064d2; text-decoration: none; }
+  .ebay-panel .lt a:hover { text-decoration: underline; }
+  .ebay-panel .lt .cond { color: var(--muted); font-size: 0.75rem; }
+  .ebay-panel .price { font-weight: bold; white-space: nowrap; }
+  .ebay-panel .err { color: var(--accent); }
 
   .filter-row {
     display: flex;
@@ -263,6 +302,8 @@
           <input type="checkbox" ${c.owned ? "checked" : ""} />
           <span>${c.owned ? "In collection" : "Mark as owned"}</span>
         </label>
+        <button class="ebay-btn">Search eBay</button>
+        <div class="ebay-panel" style="display:none"></div>
       `;
       const fileInput = card.querySelector('.file-input');
       const coverTrigger = card.querySelector('.no-cover, .cover-wrap');
@@ -279,6 +320,44 @@
         const resp = await fetch(`/api/comics/${c.id}/cover`, {method: 'POST', body: fd});
         if (resp.ok) loadComics();
       });
+      const ebayBtn = card.querySelector('.ebay-btn');
+      const ebayPanel = card.querySelector('.ebay-panel');
+      ebayBtn.addEventListener('click', async () => {
+        if (ebayPanel.style.display === 'block') {
+          ebayPanel.style.display = 'none';
+          ebayBtn.textContent = 'Search eBay';
+          return;
+        }
+        ebayBtn.disabled = true;
+        ebayBtn.textContent = 'Searching...';
+        ebayPanel.style.display = 'block';
+        ebayPanel.innerHTML = '<div>Loading...</div>';
+        try {
+          const r = await fetch(`/api/comics/${c.id}/ebay`);
+          const j = await r.json();
+          if (!r.ok) {
+            ebayPanel.innerHTML = `<div class="err">${j.error || 'Search failed'}</div>`;
+          } else if (!j.listings.length) {
+            ebayPanel.innerHTML = `<div>No listings found for <em>${j.query}</em></div>`;
+          } else {
+            ebayPanel.innerHTML = j.listings.map(l => `
+              <div class="listing">
+                ${l.thumbnail ? `<img src="${l.thumbnail}" alt="" />` : '<div class="no-thumb"></div>'}
+                <div class="lt">
+                  <a href="${l.url}" target="_blank" rel="noopener">${l.title}</a>
+                  <div class="cond">${l.condition}${l.seller ? ' · ' + l.seller : ''}</div>
+                </div>
+                <div class="price">${l.price != null ? '$' + l.price.toFixed(2) : '—'}</div>
+              </div>
+            `).join('');
+          }
+        } catch (e) {
+          ebayPanel.innerHTML = `<div class="err">${e.message}</div>`;
+        }
+        ebayBtn.disabled = false;
+        ebayBtn.textContent = 'Hide eBay results';
+      });
+
       const cb = card.querySelector('.own-row input[type=checkbox]');
       cb.addEventListener('change', async () => {
         const resp = await fetch(`/api/comics/${c.id}/owned`, {

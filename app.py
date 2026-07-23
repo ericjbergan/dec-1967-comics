@@ -2,6 +2,16 @@ import os
 import sqlite3
 from flask import Flask, request, jsonify, render_template, send_from_directory, abort
 
+from ebay_api import eBayComicSearch
+
+try:
+    from ebay_credentials import EBAY_PRODUCTION_APP_ID, EBAY_PRODUCTION_CERT_ID
+    _ebay_client = eBayComicSearch(
+        EBAY_PRODUCTION_APP_ID, EBAY_PRODUCTION_CERT_ID, sandbox=False
+    ) if EBAY_PRODUCTION_APP_ID and EBAY_PRODUCTION_CERT_ID else None
+except ImportError:
+    _ebay_client = None
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "comics.db")
 COVERS_DIR = os.path.join(BASE_DIR, "covers")
@@ -229,6 +239,32 @@ def delete_cover(comic_id):
                 os.remove(path)
         conn.execute("UPDATE comics SET cover_image = NULL WHERE id = ?", (comic_id,))
     return jsonify({"id": comic_id, "cover_image": None})
+
+
+@app.route("/api/comics/<int:comic_id>/ebay")
+def search_ebay(comic_id):
+    if _ebay_client is None:
+        return jsonify({"error": "eBay credentials not configured"}), 503
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT publisher, title, issue_number FROM comics WHERE id = ?",
+            (comic_id,),
+        ).fetchone()
+    if not row:
+        abort(404)
+    try:
+        listings = _ebay_client.search(
+            publisher=row["publisher"],
+            title=row["title"],
+            issue_number=row["issue_number"] or "",
+            limit=25,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+    return jsonify({
+        "query": f'{row["title"]} #{row["issue_number"]} {row["publisher"]}',
+        "listings": listings,
+    })
 
 
 @app.route("/covers/<path:filename>")
